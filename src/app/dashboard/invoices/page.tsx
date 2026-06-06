@@ -103,17 +103,153 @@ export default function InvoicesPage() {
     });
   }, [selectedVendor, selectedPO, baseAmount, gstAmount, totalAmount, dueDate, invoices.length, closeModal]);
 
-  const handleDownload = useCallback((inv: Invoice) => {
-    toast.success("Downloading invoice…", {
-      description: `${inv.invoiceNumber} — ${inv.vendor?.companyName}`,
-    });
+  const buildInvoiceHTML = useCallback((inv: Invoice) => {
+    const cgst = inv.taxBreakdown?.CGST ?? inv.gstAmount / 2;
+    const sgst = inv.taxBreakdown?.SGST ?? inv.gstAmount / 2;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>${inv.invoiceNumber}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #111; background: #fff; padding: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
+    .brand { font-size: 22px; font-weight: 700; color: #6c47ff; }
+    .brand-sub { font-size: 11px; color: #888; margin-top: 2px; }
+    .inv-meta { text-align: right; }
+    .inv-meta h2 { font-size: 28px; font-weight: 800; color: #6c47ff; letter-spacing: -1px; }
+    .inv-meta p { font-size: 12px; color: #555; margin-top: 4px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      background: ${ inv.status === 'PAID' ? '#dcfce7' : inv.status === 'OVERDUE' ? '#fee2e2' : '#eff6ff' };
+      color: ${ inv.status === 'PAID' ? '#166534' : inv.status === 'OVERDUE' ? '#991b1b' : '#1d4ed8' };
+      margin-top: 6px; }
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .party-box { background: #f8f8fb; border-radius: 10px; padding: 16px; }
+    .party-box h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 8px; }
+    .party-box p { font-size: 13px; line-height: 1.6; }
+    .party-box .name { font-weight: 700; font-size: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    thead th { background: #6c47ff; color: #fff; padding: 10px 14px; text-align: left; font-size: 12px; }
+    thead th:last-child { text-align: right; }
+    tbody td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f0f0f5; }
+    tbody td:last-child { text-align: right; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #fafafa; }
+    .totals { margin-left: auto; width: 280px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .totals-row.divider { border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 10px; }
+    .totals-row.grand { font-size: 16px; font-weight: 800; color: #6c47ff; }
+    .footer { margin-top: 48px; text-align: center; font-size: 11px; color: #aaa; border-top: 1px solid #f0f0f5; padding-top: 16px; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">VendorBridge AI</div>
+      <div class="brand-sub">AI-Powered Procurement Platform</div>
+    </div>
+    <div class="inv-meta">
+      <h2>${inv.invoiceNumber}</h2>
+      <p>Issued: ${new Date(inv.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+      <p>Due: ${new Date(inv.dueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+      <span class="badge">${inv.status}</span>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party-box">
+      <h4>Bill From</h4>
+      <p class="name">${inv.vendor?.companyName ?? 'Vendor'}</p>
+      <p>${inv.vendor?.address ?? ''}, ${inv.vendor?.city ?? ''}</p>
+      <p>${inv.vendor?.state ?? ''} — ${inv.vendor?.pincode ?? ''}</p>
+      <p>GST: ${inv.vendor?.gstNumber ?? '—'}</p>
+      <p>${inv.vendor?.email ?? ''}</p>
+    </div>
+    <div class="party-box">
+      <h4>Bill To</h4>
+      <p class="name">VendorBridge AI Ltd.</p>
+      <p>Procurement Department</p>
+      <p>PO Ref: ${inv.poId}</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Goods / Services as per PO ${inv.poId}</td><td>₹${inv.subtotal.toLocaleString('en-IN')}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="totals-row"><span>Subtotal</span><span>₹${inv.subtotal.toLocaleString('en-IN')}</span></div>
+    <div class="totals-row"><span>CGST</span><span>₹${cgst.toLocaleString('en-IN')}</span></div>
+    <div class="totals-row"><span>SGST</span><span>₹${sgst.toLocaleString('en-IN')}</span></div>
+    <div class="totals-row divider grand"><span>Total Amount</span><span>₹${inv.totalAmount.toLocaleString('en-IN')}</span></div>
+    ${inv.paidAt ? `<div class="totals-row" style="color:#166534"><span>✓ Paid on</span><span>${new Date(inv.paidAt).toLocaleDateString('en-IN')}</span></div>` : ''}
+  </div>
+
+  <div class="footer">This is a computer-generated invoice. No signature required. · VendorBridge AI · GST-compliant</div>
+</body>
+</html>`;
   }, []);
 
-  const handlePrint = useCallback((inv: Invoice) => {
-    toast.success("Sending to printer…", {
-      description: `${inv.invoiceNumber}`,
-    });
+  const printViaIframe = useCallback((html: string) => {
+    // Remove any previous print iframe
+    const prev = document.getElementById("__invoice_print_frame");
+    if (prev) prev.remove();
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "__invoice_print_frame";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    iframe.style.opacity = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
+    if (!doc) {
+      toast.error("Unable to create print frame");
+      return;
+    }
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    // Wait for content to render then trigger print
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      }, 300);
+    };
+    // Fallback if onload already fired (some browsers)
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    }, 600);
   }, []);
+
+  const handleDownload = useCallback((inv: Invoice) => {
+    const html = buildInvoiceHTML(inv);
+    printViaIframe(html);
+    toast.success("Opening PDF dialog…", { description: `${inv.invoiceNumber} — select "Save as PDF" in the print dialog.` });
+  }, [buildInvoiceHTML, printViaIframe]);
+
+  const handlePrint = useCallback((inv: Invoice) => {
+    const html = buildInvoiceHTML(inv);
+    printViaIframe(html);
+    toast.success("Print dialog opened", { description: inv.invoiceNumber });
+  }, [buildInvoiceHTML, printViaIframe]);
 
   const handleSendEmail = useCallback(() => {
     toast.success("Invoice emailed!", {
@@ -385,7 +521,7 @@ export default function InvoicesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={closeModal}>Close</Button>
-            <Button className="gradient-primary border-0 text-white" onClick={() => { closeModal(); if (focusedInvoice) handleDownload(focusedInvoice); }}>
+            <Button className="gradient-primary border-0 text-white" onClick={() => { if (focusedInvoice) { handleDownload(focusedInvoice); } closeModal(); }}>
               <Download className="w-4 h-4 mr-2" /> Download PDF
             </Button>
           </DialogFooter>
