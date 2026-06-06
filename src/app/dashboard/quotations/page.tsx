@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Eye, MoreHorizontal, Upload, ClipboardList, GitCompare, FileUp, CheckCircle2, Sparkles, X, FileText, Loader2 } from "lucide-react";
+import { Eye, MoreHorizontal, Upload, ClipboardList, GitCompare, FileUp, CheckCircle2, Sparkles, X, FileText, Loader2, Building2, Calendar, CreditCard, Package, Star, ThumbsUp, ThumbsDown, RotateCcw, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,15 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { mockQuotations, mockVendors } from "@/lib/mock-data";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/helpers";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Quotation } from "@/types";
 
 type UploadStep = "select" | "uploading" | "extracting" | "complete";
+type ActiveModal = "details" | "review" | null;
 
 export default function QuotationsPage() {
+  const router = useRouter();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadStep, setUploadStep] = useState<UploadStep>("select");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -25,7 +29,36 @@ export default function QuotationsPage() {
   const [extractionProgress, setExtractionProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [quotations, setQuotations] = useState<Quotation[]>(mockQuotations);
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [focusedQuotation, setFocusedQuotation] = useState<Quotation | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const openModal = useCallback((action: ActiveModal, q: Quotation) => {
+    setFocusedQuotation(q);
+    setActiveModal(action);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setActiveModal(null);
+    // keep focusedQuotation alive until animation ends
+    setTimeout(() => setFocusedQuotation(null), 300);
+  }, []);
+
+  const handleStatusChange = useCallback((newStatus: Quotation["status"]) => {
+    if (!focusedQuotation) return;
+    setQuotations(prev =>
+      prev.map(q => q.id === focusedQuotation.id ? { ...q, status: newStatus } : q)
+    );
+    const labels: Record<string, string> = {
+      SHORTLISTED: "Shortlisted ✓",
+      REJECTED: "Rejected",
+      UNDER_REVIEW: "Marked Under Review",
+    };
+    toast.success(`${labels[newStatus] ?? newStatus}`, {
+      description: `${focusedQuotation.quotationNumber} status updated.`,
+    });
+    closeModal();
+  }, [focusedQuotation, closeModal]);
 
   const resetUpload = useCallback(() => {
     setUploadStep("select");
@@ -454,9 +487,15 @@ export default function QuotationsPage() {
                       }
                     />
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem><Eye className="w-3.5 h-3.5 mr-2" /> View Details</DropdownMenuItem>
-                      <DropdownMenuItem><ClipboardList className="w-3.5 h-3.5 mr-2" /> Review</DropdownMenuItem>
-                      <DropdownMenuItem><GitCompare className="w-3.5 h-3.5 mr-2" /> Compare</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openModal("details", q)}>
+                        <Eye className="w-3.5 h-3.5 mr-2" /> View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openModal("review", q)}>
+                        <ClipboardList className="w-3.5 h-3.5 mr-2" /> Review
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push("/dashboard/compare")}>
+                        <GitCompare className="w-3.5 h-3.5 mr-2" /> Compare
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -465,6 +504,216 @@ export default function QuotationsPage() {
           </TableBody>
         </Table>
       </Card>
+      {/* ── View Details Modal ── */}
+      <Dialog open={activeModal === "details"} onOpenChange={open => { if (!open) closeModal(); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              {focusedQuotation?.quotationNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Submitted by {focusedQuotation?.vendor?.companyName}
+            </DialogDescription>
+          </DialogHeader>
+
+          {focusedQuotation && (
+            <div className="space-y-5 pt-1">
+              {/* AI Score banner */}
+              <div className={`flex items-center justify-between rounded-xl p-4 ${
+                (focusedQuotation.aiScore || 0) >= 90 ? "bg-success/10 border border-success/20" :
+                (focusedQuotation.aiScore || 0) >= 80 ? "bg-primary/10 border border-primary/20" :
+                "bg-warning/10 border border-warning/20"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Star className={`w-4 h-4 ${
+                    (focusedQuotation.aiScore || 0) >= 90 ? "text-success" :
+                    (focusedQuotation.aiScore || 0) >= 80 ? "text-primary" : "text-warning"
+                  }`} />
+                  <span className="text-sm font-semibold">AI Score</span>
+                </div>
+                <span className={`text-2xl font-bold ${
+                  (focusedQuotation.aiScore || 0) >= 90 ? "text-success" :
+                  (focusedQuotation.aiScore || 0) >= 80 ? "text-primary" : "text-warning"
+                }`}>{focusedQuotation.aiScore}<span className="text-sm font-normal text-muted-foreground">/100</span></span>
+              </div>
+
+              {/* Vendor & Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1"><Building2 className="w-3 h-3" /> Vendor</p>
+                  <p className="font-semibold">{focusedQuotation.vendor?.companyName}</p>
+                  <p className="text-xs text-muted-foreground">{focusedQuotation.vendor?.email}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <Badge variant="outline" className={`text-xs ${getStatusColor(focusedQuotation.status)}`}>
+                    {focusedQuotation.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Financials */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Total Amount", value: formatCurrency(focusedQuotation.totalAmount) },
+                  { label: "GST Amount",   value: formatCurrency(focusedQuotation.gstAmount)   },
+                  { label: "Tax Amount",   value: formatCurrency(focusedQuotation.taxAmount)   },
+                ].map(f => (
+                  <div key={f.label} className="bg-muted/40 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground">{f.label}</p>
+                    <p className="font-bold text-sm mt-0.5">{f.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Terms */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: Calendar,    label: "Delivery Time",  value: focusedQuotation.deliveryTime },
+                  { icon: CreditCard,  label: "Payment Terms",  value: focusedQuotation.paymentTerms },
+                  { icon: CheckCircle2,label: "Warranty",       value: focusedQuotation.warranty     },
+                  { icon: Package,     label: "Support",        value: focusedQuotation.supportDetails},
+                ].map(t => (
+                  <div key={t.label} className="flex items-start gap-2">
+                    <t.icon className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">{t.label}</p>
+                      <p className="text-sm font-medium">{t.value || "—"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Line Items */}
+              {focusedQuotation.items && focusedQuotation.items.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-sm font-semibold mb-3">Line Items</p>
+                    <div className="rounded-lg border border-border/50 overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left p-2.5 font-medium text-muted-foreground">Product</th>
+                            <th className="text-center p-2.5 font-medium text-muted-foreground">Qty</th>
+                            <th className="text-right p-2.5 font-medium text-muted-foreground">Unit Price</th>
+                            <th className="text-right p-2.5 font-medium text-muted-foreground">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {focusedQuotation.items.map((item, i) => (
+                            <tr key={item.id} className={i % 2 === 0 ? "" : "bg-muted/20"}>
+                              <td className="p-2.5">
+                                <p className="font-medium">{item.productName}</p>
+                                {item.specifications && <p className="text-muted-foreground">{item.specifications}</p>}
+                              </td>
+                              <td className="p-2.5 text-center">{item.quantity}</td>
+                              <td className="p-2.5 text-right">{formatCurrency(item.unitPrice)}</td>
+                              <td className="p-2.5 text-right font-semibold">{formatCurrency(item.totalPrice)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* AI Extracted badge */}
+              {focusedQuotation.aiExtractedData?.extracted && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 border border-primary/15 rounded-lg px-3 py-2">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>AI extracted · {Math.round((focusedQuotation.aiExtractedData.confidence || 0) * 100)}% confidence</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal}>Close</Button>
+            <Button
+              className="gradient-primary border-0 text-white"
+              onClick={() => { closeModal(); router.push("/dashboard/compare"); }}
+            >
+              <GitCompare className="w-4 h-4 mr-2" /> Compare
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Review Modal ── */}
+      <Dialog open={activeModal === "review"} onOpenChange={open => { if (!open) closeModal(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-primary" />
+              Review Quotation
+            </DialogTitle>
+            <DialogDescription>
+              {focusedQuotation?.quotationNumber} · {focusedQuotation?.vendor?.companyName}
+            </DialogDescription>
+          </DialogHeader>
+
+          {focusedQuotation && (
+            <div className="space-y-4 py-2">
+              {/* Summary */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/40 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Amount</p>
+                  <p className="font-bold">{formatCurrency(focusedQuotation.totalAmount)}</p>
+                </div>
+                <div className="bg-muted/40 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">AI Score</p>
+                  <p className="font-bold text-primary">{focusedQuotation.aiScore}/100</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <p className="text-sm font-medium">Update Status</p>
+              <div className="space-y-2">
+                <Button
+                  className="w-full justify-start gap-2 bg-success/10 text-success hover:bg-success/20 border border-success/20"
+                  variant="outline"
+                  onClick={() => handleStatusChange("SHORTLISTED")}
+                  disabled={focusedQuotation.status === "SHORTLISTED"}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  Shortlist this Quotation
+                  {focusedQuotation.status === "SHORTLISTED" && <Badge className="ml-auto text-[10px] bg-success/20 text-success border-0">Current</Badge>}
+                </Button>
+                <Button
+                  className="w-full justify-start gap-2 bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20"
+                  variant="outline"
+                  onClick={() => handleStatusChange("UNDER_REVIEW")}
+                  disabled={focusedQuotation.status === "UNDER_REVIEW"}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Mark as Under Review
+                  {focusedQuotation.status === "UNDER_REVIEW" && <Badge className="ml-auto text-[10px] bg-warning/20 text-warning border-0">Current</Badge>}
+                </Button>
+                <Button
+                  className="w-full justify-start gap-2 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
+                  variant="outline"
+                  onClick={() => handleStatusChange("REJECTED")}
+                  disabled={focusedQuotation.status === "REJECTED"}
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  Reject Quotation
+                  {focusedQuotation.status === "REJECTED" && <Badge className="ml-auto text-[10px] bg-destructive/20 text-destructive border-0">Current</Badge>}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
