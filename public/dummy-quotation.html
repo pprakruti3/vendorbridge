@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotation - QT-2025-001 - Dell Technologies</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fa;
+      color: #1a1a2e;
+      padding: 40px;
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 100%);
+      color: #fff;
+      padding: 32px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .header-left h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .header-left .subtitle {
+      font-size: 12px;
+      color: #8ea4c8;
+      margin-top: 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .header-right .doc-type {
+      font-size: 28px;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: -0.5px;
+    }
+
+    .header-right .doc-number {
+      font-size: 13px;
+      color: #8ea4c8;
+      margin-top: 2px;
+    }
+
+    /* Info bar */
+    .info-bar {
+      background: #f0f4f8;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 13px;
+    }
+
+    .info-bar .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .info-bar .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .info-bar .value {
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    /* Body */
+    .body {
+      padding: 32px 40px;
+    }
+
+    /* Address section */
+    .addresses {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      gap: 40px;
+    }
+
+    .address-block {
+      flex: 1;
+    }
+
+    .address-block .block-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .address-block .company {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+
+    .address-block p {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    .address-block .gst {
+      font-size: 11px;
+      color: #3b82f6;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* RFQ Reference */
+    .rfq-ref {
+      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rfq-ref .rfq-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #3b82f6;
+      font-weight: 700;
+    }
+
+    .rfq-ref .rfq-title {
+      font-size: 13px;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    /* Table */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .items-table thead th {
+      background: #1a2a4a;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .items-table thead th:first-child {
+      border-radius: 6px 0 0 0;
+    }
+
+    .items-table thead th:last-child {
+      border-radius: 0 6px 0 0;
+      text-align: right;
+    }
+
+    .items-table tbody td {
+      padding: 12px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .items-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .items-table .product-name {
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .items-table .product-specs {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .items-table .text-right {
+      text-align: right;
+    }
+
+    .items-table .text-center {
+      text-align: center;
+    }
+
+    /* Totals */
+    .totals-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 28px;
+    }
+
+    .totals-box {
+      width: 300px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #475569;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .totals-row.total {
+      background: linear-gradient(135deg, #0a1628, #1a2a4a);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: none;
+    }
+
+    /* Terms */
+    .terms-section {
+      margin-bottom: 28px;
+    }
+
+    .terms-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .terms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .term-item {
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 12px 16px;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .term-item .term-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .term-item .term-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    /* Signature */
+    .signature-section {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 2px solid #e2e8f0;
+    }
+
+    .signature-block {
+      text-align: center;
+      width: 200px;
+    }
+
+    .signature-line {
+      border-bottom: 1px solid #94a3b8;
+      height: 50px;
+      margin-bottom: 6px;
+    }
+
+    .signature-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .signature-title {
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    /* Footer */
+    .footer {
+      background: #f0f4f8;
+      padding: 16px 40px;
+      text-align: center;
+      font-size: 10px;
+      color: #94a3b8;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    /* Validity badge */
+    .validity-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    @media print {
+      body { padding: 0; background: #fff; }
+      .page { box-shadow: none; border-radius: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Print button -->
+  <div style="max-width: 800px; margin: 0 auto 16px; text-align: right;" class="no-print">
+    <button onclick="window.print()" style="
+      background: linear-gradient(135deg, #0a1628, #1a2a4a);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    ">⬇ Save as PDF / Print</button>
+  </div>
+
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>DELL TECHNOLOGIES</h1>
+        <div class="subtitle">Enterprise Solutions &amp; Services</div>
+      </div>
+      <div class="header-right">
+        <div class="doc-type">QUOTATION</div>
+        <div class="doc-number">QT-2025-001</div>
+      </div>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="info-bar">
+      <div class="info-item">
+        <span class="label">Date</span>
+        <span class="value">03 June 2025</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Valid Until</span>
+        <span class="value">03 July 2025</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Payment Terms</span>
+        <span class="value">Net 30</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Status</span>
+        <span class="validity-badge">SHORTLISTED</span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <!-- Addresses -->
+      <div class="addresses">
+        <div class="address-block">
+          <div class="block-title">From (Vendor)</div>
+          <div class="company">Dell Technologies India Pvt. Ltd.</div>
+          <p>
+            42, Electronic City Phase 1<br>
+            Bangalore, Karnataka — 560100<br>
+            Phone: +91 80 2559 9000<br>
+            Email: procurement@dell.com
+          </p>
+          <div class="gst">GSTIN: 29AABCU9603R1ZM &nbsp;|&nbsp; PAN: AABCU9603R</div>
+        </div>
+        <div class="address-block">
+          <div class="block-title">To (Buyer)</div>
+          <div class="company">VendorBridge AI Pvt. Ltd.</div>
+          <p>
+            Tech Park One, Whitefield<br>
+            Bangalore, Karnataka — 560066<br>
+            Phone: +91 80 4567 8900<br>
+            Email: procurement@vendorbridge.ai
+          </p>
+          <div class="gst">GSTIN: 29AABCV1234R1ZA &nbsp;|&nbsp; PAN: AABCV1234R</div>
+        </div>
+      </div>
+
+      <!-- RFQ Reference -->
+      <div class="rfq-ref">
+        <div>
+          <div class="rfq-label">Reference: RFQ-2025-001</div>
+          <div class="rfq-title">Enterprise Laptops — 100 Units</div>
+        </div>
+        <div style="font-size: 11px; color: #64748b;">Priority: <strong style="color: #dc2626;">HIGH</strong></div>
+      </div>
+
+      <!-- Items Table -->
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width: 40px">#</th>
+            <th>Product / Description</th>
+            <th class="text-center">Qty</th>
+            <th class="text-right">Unit Price (₹)</th>
+            <th class="text-center">GST %</th>
+            <th class="text-right">Total (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>
+              <div class="product-name">Dell Latitude 5540</div>
+              <div class="product-specs">Intel Core i7-1365U, 16GB DDR5 RAM, 512GB NVMe SSD, 14" FHD IPS Display, Windows 11 Pro, 3-Year Onsite Warranty</div>
+            </td>
+            <td class="text-center">100</td>
+            <td class="text-right">68,500.00</td>
+            <td class="text-center">18%</td>
+            <td class="text-right">68,50,000.00</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>
+              <div class="product-name">Dell USB-C Docking Station — WD19S</div>
+              <div class="product-specs">180W, Dual 4K Display Support, USB 3.2, Ethernet, SD Card Reader</div>
+            </td>
+            <td class="text-center">100</td>
+            <td class="text-right">8,500.00</td>
+            <td class="text-center">18%</td>
+            <td class="text-right">8,50,000.00</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>
+              <div class="product-name">Dell Pro Wireless Keyboard & Mouse — KM5221W</div>
+              <div class="product-specs">Full-size, 2.4GHz Wireless, Programmable Keys, 36-Month Battery Life</div>
+            </td>
+            <td class="text-center">100</td>
+            <td class="text-right">2,200.00</td>
+            <td class="text-center">18%</td>
+            <td class="text-right">2,20,000.00</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>
+              <div class="product-name">Dell Laptop Carry Case — Professional 14"</div>
+              <div class="product-specs">Water-Resistant, Padded Compartments, Shoulder Strap</div>
+            </td>
+            <td class="text-center">100</td>
+            <td class="text-right">1,800.00</td>
+            <td class="text-center">18%</td>
+            <td class="text-right">1,80,000.00</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>
+              <div class="product-name">On-Site Setup & Configuration Service</div>
+              <div class="product-specs">Includes OS imaging, domain join, application install, data migration per unit</div>
+            </td>
+            <td class="text-center">100</td>
+            <td class="text-right">1,500.00</td>
+            <td class="text-center">18%</td>
+            <td class="text-right">1,50,000.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Totals -->
+      <div class="totals-section">
+        <div class="totals-box">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span>₹82,50,000.00</span>
+          </div>
+          <div class="totals-row">
+            <span>CGST (9%)</span>
+            <span>₹7,42,500.00</span>
+          </div>
+          <div class="totals-row">
+            <span>SGST (9%)</span>
+            <span>₹7,42,500.00</span>
+          </div>
+          <div class="totals-row">
+            <span>Total GST (18%)</span>
+            <span>₹14,85,000.00</span>
+          </div>
+          <div class="totals-row total">
+            <span>Grand Total</span>
+            <span>₹97,35,000.00</span>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: right; font-size: 11px; color: #64748b; margin-bottom: 28px; font-style: italic;">
+        Amount in Words: <strong>Ninety-Seven Lakhs Thirty-Five Thousand Rupees Only</strong>
+      </p>
+
+      <!-- Terms & Conditions -->
+      <div class="terms-section">
+        <div class="terms-title">Terms &amp; Conditions</div>
+        <div class="terms-grid">
+          <div class="term-item">
+            <div class="term-label">Delivery Timeline</div>
+            <div class="term-value">15 Business Days</div>
+          </div>
+          <div class="term-item">
+            <div class="term-label">Warranty</div>
+            <div class="term-value">3 Years Onsite</div>
+          </div>
+          <div class="term-item">
+            <div class="term-label">Payment Terms</div>
+            <div class="term-value">Net 30 Days</div>
+          </div>
+          <div class="term-item">
+            <div class="term-label">Support</div>
+            <div class="term-value">24/7 Phone + Onsite</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Terms -->
+      <div style="font-size: 11px; color: #64748b; line-height: 1.8; margin-bottom: 20px;">
+        <strong style="color: #475569;">Additional Terms:</strong>
+        <ol style="padding-left: 18px; margin-top: 4px;">
+          <li>Prices are inclusive of delivery and installation charges within Bangalore city limits.</li>
+          <li>This quotation is valid for 30 days from the date of issue.</li>
+          <li>Extended warranty options (4th & 5th year) available at ₹3,200/unit/year.</li>
+          <li>Bulk order discount of 3% applicable for orders above 150 units.</li>
+          <li>All products are covered under Dell's standard return & replacement policy.</li>
+          <li>Delivery will be in batches of 25 units, with first batch within 7 business days.</li>
+        </ol>
+      </div>
+
+      <!-- Signatures -->
+      <div class="signature-section">
+        <div class="signature-block">
+          <div class="signature-line"></div>
+          <div class="signature-name">Rajesh Kumar</div>
+          <div class="signature-title">Enterprise Sales Manager</div>
+          <div class="signature-title">Dell Technologies India</div>
+        </div>
+        <div class="signature-block">
+          <div class="signature-line"></div>
+          <div class="signature-name">Authorized Signatory</div>
+          <div class="signature-title">VendorBridge AI Pvt. Ltd.</div>
+          <div class="signature-title">(Buyer Acceptance)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Dell Technologies India Pvt. Ltd. &nbsp;|&nbsp; CIN: U72200KA2010PTC054893 &nbsp;|&nbsp; 
+      <a href="mailto:procurement@dell.com">procurement@dell.com</a> &nbsp;|&nbsp; 
+      This is a computer-generated quotation and does not require a physical signature.
+    </div>
+  </div>
+
+</body>
+</html>
